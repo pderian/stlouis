@@ -134,12 +134,12 @@ class DataPreprocessor:
                 (self.iYX[:,1]<margin) | (self.iYX[:,1]>=im_shape[1]-margin)
                ).reshape(self.shape)
 
-    def demo(self, im_file, out_file=None):
+    def demo(self, im_file, out_image_file=None, out_matrix_file=None):
         """
         Show the preprocessor output.
 
         Arguments:
-            imagefile: path to an image to be processed
+            im_file: path to an image to be processed
         """
         print('\n*** {} Demo ***'.format(self.__class__.__name__))
         ### image
@@ -154,10 +154,14 @@ class DataPreprocessor:
              ))
         dm_iYX = self.projection.inverse(dm_YX.T)
 
-        ### print
+        ### print and save homography
         print('Homography matrix:\n{}'.format(self.H))
         if self.control_points is not None:
             print('Estimated from control points: {}'.format(self.cp_file))
+        if out_matrix_file is not None:
+            numpy.savetxt(out_matrix_file, self.H)
+            print('Saved homography matrix: {}'.format(out_matrix_file))
+
         ### plot
         dpi = 90.
         fig, axes = pyplot.subplots(1,2, figsize=(1921./dpi, 1080./dpi))
@@ -191,9 +195,9 @@ class DataPreprocessor:
                            bbox_to_anchor=[0.3, 0.12], bbox_transform=fig.transFigure)
         # save / display
         pyplot.subplots_adjust(left=.05, bottom=.07, right=1.04, top=.92, wspace=0.)
-        if out_file is not None:
-            pyplot.savefig(out_file, dpi=dpi)
-            print('Saved output figure: {}'.format(out_file))
+        if out_image_file is not None:
+            pyplot.savefig(out_image_file, dpi=dpi)
+            print('Saved output figure: {}'.format(out_image_file))
         pyplot.show()
 
 
@@ -207,6 +211,7 @@ if __name__=="__main__":
     preproc = DataPreprocessor(**params)
     preproc.demo(
         "resources/{}_sample_frame.jpg".format(params['label']),
-        "resources/{}_config_demo.png".format(params['label']),
+        out_image_file="resources/{}_config_demo.png".format(params['label']),
+        out_matrix_file="resources/{}_homography_demo.txt".format(params['label']),
         )
 

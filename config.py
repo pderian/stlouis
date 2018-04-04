@@ -6,13 +6,6 @@ Written by P. DERIAN 2017-01-06.
 import numpy
 ###
 
-### Path
-ROOT_RAWDATA_DIR = ''
-ROOT_PREPROC_DIR = ''
-ROOT_ESTIM_DIR = ''
-# this is the directory where ffmpeg & co are installed, since libav sucks ass.
-FFMPEG_DIR = '/opt/local/bin'
-
 ### Parameters for the St Louis dataset
 PARAMS_SAINTLOUIS = {
     # input data
