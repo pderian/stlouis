@@ -6,6 +6,6 @@ Scripts for preprocessing (rectification) of Saint Louis UAV videos.
 - FFMPEG for frames extraction;
 
 ## Usage
-Run `python preprocessing.py`.
+Run `python preprocessor.py`.
 
 ![Saint Louis rectification](resources/StLouis_config_demo.png)
