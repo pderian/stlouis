@@ -11,6 +11,7 @@ import numpy
 import matplotlib.pyplot as pyplot
 import matplotlib.patches as patches
 import scipy.ndimage as ndimage
+import scipy.io as scio
 import skimage.io as skio
 import skimage.transform as sktransform
 ###
@@ -134,7 +135,27 @@ class DataPreprocessor:
                 (self.iYX[:,1]<margin) | (self.iYX[:,1]>=im_shape[1]-margin)
                ).reshape(self.shape)
 
-    def demo(self, im_file, out_image_file=None, out_matrix_file=None):
+    def coordinates_of_image(self, im_shape):
+        """Compute the world coordinates of the pixels of a given image shape.
+
+        :param im_shape: the shape in Numpy sense (rows, columns) of the considered image.
+        :return: x_world, y_world, thow arrays (rows, columns) of world coordinates.
+            i.e. image[i, j] has world coordinates (x[i,j], y[i,j]).
+
+        Written by P. DERIAN 2018-04-07.
+        """
+        ny, nx = im_shape[:2]
+        # grid of pixel coordinates
+        x_px, y_px = numpy.meshgrid(numpy.arange(nx, dtype=float),
+                                    numpy.arange(ny, dtype=float))
+        # reshape for projection
+        yx_px = numpy.concatenate((y_px.reshape((-1,1)), x_px.reshape((-1,1))), axis=-1)
+        # transform pixel=>world
+        yx_world = self.projection(yx_px)
+        # reshape and return x_world, y_world
+        return yx_world[:,1].reshape((ny, nx)), yx_world[:,0].reshape((ny, nx))
+
+    def demo(self, im_file, out_image_file=None, out_matrix_file=None, out_coord_file=None):
         """
         Show the preprocessor output.
 
@@ -161,6 +182,20 @@ class DataPreprocessor:
         if out_matrix_file is not None:
             numpy.savetxt(out_matrix_file, self.H)
             print('Saved homography matrix: {}'.format(out_matrix_file))
+
+        ### compute world coordinates of all image pixels
+        world_X, world_Y = self.coordinates_of_image(im.shape)
+        if out_coord_file is not None:
+            scio.savemat(
+                out_coord_file,
+                {'im_shape': im.shape,
+                 'Xutm': world_X,
+                 'Yutm': world_Y,
+                 'H': self.H,
+                 'source': '{} by P. DERIAN - www.pierrederian.net'.format(os.path.basename(__file__)),
+                 'descr': '"Xutm", "Yutm" are world coordinates (UTM) of the pixels of an image of shape "im_shape", i.e. image[i, j] has world coordinates (Xutm[i,j], Yutm[i,j]) with (i, j) zero-based indices. Coordinates were computed using homography matrix "H".'
+                 })
+            print('Saved world coordinate matrices: {}'.format(out_coord_file))
 
         ### plot
         dpi = 90.
@@ -201,7 +236,6 @@ class DataPreprocessor:
         pyplot.show()
 
 
-
 ### MAIN ####
 #############
 if __name__=="__main__":
@@ -209,9 +243,11 @@ if __name__=="__main__":
     ### run the demo
     params = PARAMS_SAINTLOUIS
     preproc = DataPreprocessor(**params)
+
     preproc.demo(
         "resources/{}_sample_frame.jpg".format(params['label']),
         out_image_file="resources/{}_config_demo.png".format(params['label']),
         out_matrix_file="resources/{}_homography_demo.txt".format(params['label']),
+        out_coord_file="resources/{}_coordinates_demo.mat".format(params['label']),
         )
 
